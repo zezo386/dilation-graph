@@ -1,5 +1,7 @@
 # Dilation Graph
 
+<img width="1369" height="725" alt="image" src="https://github.com/user-attachments/assets/65e6be3c-31ec-4c54-b454-7050d173ab5b" />
+
 this project is just a graph where you put a polygon and see how dilation affects it
 
 ## Tech stack
