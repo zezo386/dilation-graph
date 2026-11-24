@@ -30,6 +30,11 @@ def draw():
     global fill_patch
     global dilated_fill_patch
     dilation_marker.set_data([dilation_center[0]], [dilation_center[1]])
+    polygon_points.set_offsets(np.empty((0,2)))
+    dilated_points.set_offsets(np.empty((0,2)))
+    polygon_edges.setdata([])
+    dilated_edges.setdata([])
+    
     if points:
         polygon_points.set_offsets(points)
         if dilation_factor != 1:
