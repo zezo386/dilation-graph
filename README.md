@@ -6,6 +6,8 @@ this project is just a graph where you put a polygon and see how dilation affect
 
 this project is made entirely using python and matplotlib library
 
+this will result in a slow launch every time so dont open too many at once or your laptop will fry (RIP my laptop)
+
 ## How to use
 
 ### Download
