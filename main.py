@@ -6,17 +6,21 @@ fig, ax = plt.subplots(figsize=(7,7))
 
 ax.set_title("Dilation graph")
 
-ax.set_xlim(-10,10)
-ax.set_ylim(-10,10)
+ax.set_xlim(-50,50)
+ax.set_ylim(-50,50)
 ax.grid(True, alpha=0.2)
 ax.axhline(0, color='black', linewidth=0.8)
 ax.axvline(0, color='black', linewidth=0.8)
 ax.set_aspect('equal')
 
 points = []
-polygon_points = ax.scatter([], [], color="#3b82f6", s=50, picker=True)
-polygon_edges, = ax.plot([], [], 'o-', color="#3b82f6", markersize=8, linewidth=2, picker=True)
+polygon_points = ax.scatter([], [], color="#0000ff", s=50, picker=True)
+polygon_edges, = ax.plot([], [], 'o-', color="#0000ff", markersize=8, linewidth=2, picker=True)
 fill_patch = None
+
+dilated_points = ax.scatter([], [], color="#00ff00", s=50)
+dilated_edges, = ax.plot([], [], 'o-', color="#00ff00", markersize=8, linewidth=2)
+dilated_fill_patch = None
 
 dilation_center = (0,0)
 dilation_factor = 1
@@ -24,28 +28,40 @@ dilation_marker, = ax.plot([0],[0], marker="o", color="black", zorder=5)
 
 def draw():
     global fill_patch
+    global dilated_fill_patch
     dilation_marker.set_data([dilation_center[0]], [dilation_center[1]])
     if points:
         polygon_points.set_offsets(points)
+        if dilation_factor != 1:
+            dilated_points.set_offsets([((point[0]-dilation_center[0])*dilation_factor + dilation_center[0], (point[1]-dilation_center[1])*dilation_factor + dilation_center[1]) for point in points])
+
 
     if len(points) >= 2:
-        xs = [round(p[0], 1) for p in points]
-        ys = [round(p[1], 1) for p in points]
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
 
         if len(points) > 2:
             xs.append(points[0][0])
             ys.append(points[0][1])
         polygon_edges.set_data(xs, ys)
+        if dilation_factor != 1:
+            dilated_edges.set_data([(x-dilation_center[0])*dilation_factor + dilation_center[0] for x in xs], [(y-dilation_center[1])*dilation_factor + dilation_center[1] for y in ys])
     else:
         polygon_edges.set_data([], [])
+        dilated_edges.set_data([], [])
     
     if fill_patch:
         fill_patch.remove()
         fill_patch = None
+        if dilation_factor != 1:
+            dilated_fill_patch.remove()
+            dilated_fill_patch = None
     if len(points) >= 3:
         xs = [p[0] for p in points]
         ys = [p[1] for p in points]
-        fill_patch = ax.fill(xs, ys, color="#3b82f6", alpha=0.15, edgecolor='none', zorder=3)[0]
+        fill_patch = ax.fill(xs, ys, color="#0000ff", alpha=0.15, edgecolor='none', zorder=3)[0]
+        if dilation_factor != 1:
+            dilated_fill_patch = ax.fill([(x-dilation_center[0])*dilation_factor + dilation_center[0] for x in xs], [(y-dilation_center[1])*dilation_factor + dilation_center[1] for y in ys], color="#00ff00", alpha=0.15, edgecolor="none", zorder=3)[0]
     
     
 
@@ -54,7 +70,7 @@ def draw():
 
 dragging = None
 
-def find_closest_point(x, y, min_distance=0.5):
+def find_closest_point(x, y, min_distance=2):
     best_distance = min_distance
     best_idx = None
     for point in points:
@@ -118,12 +134,15 @@ def on_reset(_):
     polygon_edges.set_data([], [])
     polygon_points.set_offsets(np.empty((0,2)))
     dilation_center = (0,0)
+    dilated_edges.set_data([], [])
+    dilated_points.set_offsets(np.empty((0,2)))
     draw()
 reset_btn.on_clicked(on_reset)
 
 def on_slider_change(value):
     global dilation_factor
     dilation_factor = value
+    draw()
 dilation_slider.on_changed(on_slider_change)
 
 
