@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
+from matplotlib.collections import LineCollection
 import numpy as np
 
 fig, ax = plt.subplots(figsize=(7,7))
@@ -26,19 +27,30 @@ dilation_center = (0,0)
 dilation_factor = 1
 dilation_marker, = ax.plot([0],[0], marker="o", color="black", zorder=5)
 
+dilation_lines = LineCollection([], color="#00f000", linewidths=1, linestyles="--", zorder=2)
+ax.add_collection(dilation_lines)
+
+def dilate(p):
+    cx, cy = dilation_center
+    k = dilation_factor
+    return ( cx + (p[0] - cx) * k, cy + (p[1] - cy) * k)
+
 def draw():
     global fill_patch
     global dilated_fill_patch
     dilation_marker.set_data([dilation_center[0]], [dilation_center[1]])
     polygon_points.set_offsets(np.empty((0,2)))
     dilated_points.set_offsets(np.empty((0,2)))
-    polygon_edges.setdata([])
-    dilated_edges.setdata([])
+    polygon_edges.set_data([], [])
+    dilated_edges.set_data([], [])
+    dilation_lines.set_segments([])
     
     if points:
         polygon_points.set_offsets(points)
         if dilation_factor != 1:
-            dilated_points.set_offsets([((point[0]-dilation_center[0])*dilation_factor + dilation_center[0], (point[1]-dilation_center[1])*dilation_factor + dilation_center[1]) for point in points])
+            dilated_points.set_offsets([dilate(point) for point in points])
+            dilation_lines.set_segments([[dilation_center, dilate(point)] for point in points])
+
 
 
     if len(points) >= 2:
@@ -50,7 +62,8 @@ def draw():
             ys.append(points[0][1])
         polygon_edges.set_data(xs, ys)
         if dilation_factor != 1:
-            dilated_edges.set_data([(x-dilation_center[0])*dilation_factor + dilation_center[0] for x in xs], [(y-dilation_center[1])*dilation_factor + dilation_center[1] for y in ys])
+            dilated_edges.set_data([dilate((x,0))[0] for x in xs], [dilate((0,y))[1] for y in ys])
+            
     else:
         polygon_edges.set_data([], [])
         dilated_edges.set_data([], [])
@@ -66,7 +79,7 @@ def draw():
         ys = [p[1] for p in points]
         fill_patch = ax.fill(xs, ys, color="#0000ff", alpha=0.15, edgecolor='none', zorder=3)[0]
         if dilation_factor != 1:
-            dilated_fill_patch = ax.fill([(x-dilation_center[0])*dilation_factor + dilation_center[0] for x in xs], [(y-dilation_center[1])*dilation_factor + dilation_center[1] for y in ys], color="#00ff00", alpha=0.15, edgecolor="none", zorder=3)[0]
+            dilated_fill_patch = ax.fill([dilate(point)[0] for point in points], [dilate(point)[1] for point in points], color="#00ff00", alpha=0.15, edgecolor="none", zorder=3)[0]
     
     
 
@@ -141,6 +154,7 @@ def on_reset(_):
     dilation_center = (0,0)
     dilated_edges.set_data([], [])
     dilated_points.set_offsets(np.empty((0,2)))
+    dilation_lines.set_segments([])
     draw()
 reset_btn.on_clicked(on_reset)
 
